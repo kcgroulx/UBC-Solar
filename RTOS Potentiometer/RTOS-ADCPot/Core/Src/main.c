@@ -19,8 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
-#include <string.h>
-#include <stdio.h>
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -33,6 +32,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define DEADZONE 400
+#define POTMAX 3650
+
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -42,6 +45,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+ADC_HandleTypeDef hadc2;
 
 UART_HandleTypeDef huart2;
 
@@ -68,6 +72,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_ADC2_Init(void);
 void StartDefaultTask(void *argument);
 void startReadADC(void *argument);
 
@@ -110,6 +115,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_ADC1_Init();
+  MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -256,6 +262,41 @@ static void MX_ADC1_Init(void)
 }
 
 /**
+  * @brief ADC2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC2_Init(void)
+{
+
+  /* USER CODE BEGIN ADC2_Init 0 */
+
+  /* USER CODE END ADC2_Init 0 */
+
+  /* USER CODE BEGIN ADC2_Init 1 */
+
+  /* USER CODE END ADC2_Init 1 */
+
+  /** Common config
+  */
+  hadc2.Instance = ADC2;
+  hadc2.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc2.Init.ContinuousConvMode = DISABLE;
+  hadc2.Init.DiscontinuousConvMode = DISABLE;
+  hadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc2.Init.NbrOfConversion = 1;
+  if (HAL_ADC_Init(&hadc2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC2_Init 2 */
+
+  /* USER CODE END ADC2_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -339,8 +380,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  uint16_t raw;
-  char msg[10];
+
   /* Infinite loop */
   for(;;)
   {
@@ -360,15 +400,40 @@ void StartDefaultTask(void *argument)
 void startReadADC(void *argument)
 {
   /* USER CODE BEGIN startReadADC */
+  uint16_t ADCRaw;
+  float motorCurrent = 10;
+  char msg[15];
   /* Infinite loop */
   for(;;)
   {
 	  HAL_ADC_Start(&hadc1);
 	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-	  raw = HAL_ADC_GetValue(&hadc1);
+	  ADCRaw = HAL_ADC_GetValue(&hadc1);
+
+	  if (event_flags.reverse_enable)
+		velocity.float_value = -100.0;
+	  else
+	    velocity.float_value = 100.0;
+
+	  current.float_value =
+
+
+
+	  //Writing data into data_send
+	  for (int i = 0; i < (uint8_t) CAN_DATA_LENGTH / 2; i++)
+	  {
+		  data_send[i] = velocity.bytes[i];
+	      data_send[i + 4] = current.bytes[i];
+	  }
+
+	          // send CAN message to motor controller
+	          HAL_CAN_AddTxMessage(&hcan, &drive_command_header, data_send, &can_mailbox);
+	  //motorCurrent = (ADCRaw - DEADZONE >= 0 ? (float)(ADCRaw - DEADZONE) : 0.0);
+
+
 
 	  // Convert to string and print
-	  sprintf(msg, "%hu\r\n", raw);
+	  sprintf(msg, "%f\n", motorCurrent);
 	  HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 	  osDelay(10);
   }

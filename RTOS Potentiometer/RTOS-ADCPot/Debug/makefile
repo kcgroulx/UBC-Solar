@@ -64,8 +64,8 @@ all: main-build
 main-build: RTOS-ADCPot.elf secondary-outputs
 
 # Tool invocations
-RTOS-ADCPot.elf RTOS-ADCPot.map: $(OBJS) $(USER_OBJS) C:\Users\kcgro\STM32CubeIDE\workspace_1.10.1\RTOS-ADCPot\STM32F103RBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "RTOS-ADCPot.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\kcgro\STM32CubeIDE\workspace_1.10.1\RTOS-ADCPot\STM32F103RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="RTOS-ADCPot.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+RTOS-ADCPot.elf RTOS-ADCPot.map: $(OBJS) $(USER_OBJS) C:\Users\kcgro\Documents\GitHub\UBC-Solar\RTOS\ Potentiometer\RTOS-ADCPot\STM32F103RBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "RTOS-ADCPot.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\kcgro\Documents\GitHub\UBC-Solar\RTOS Potentiometer\RTOS-ADCPot\STM32F103RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="RTOS-ADCPot.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
